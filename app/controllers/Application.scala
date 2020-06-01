@@ -1,16 +1,24 @@
 package controllers
 
+import model.Activity
 import play.api._
 import play.api.mvc._
 import play.api.cache.Cache
 import play.api.Play.current
-
 import play.api.db._
+import play.api.libs.json.Json
 
-object Application extends Controller {
+import play.api.mvc._
+import spray.json._
+import spray.json.DefaultJsonProtocol._
 
-  def index = Action {
-    Ok(views.html.index(null))
+object Application extends Controller with DefaultJsonProtocol {
+
+  implicit val activityFormat = Json.format[Activity]
+
+  def getAll = Action {
+    val activity = Activity(1, "bike ride", "hyde park", None, "bike ride in hyde park", true)
+    Ok(Json.toJson(activity))
   }
 
   def db = Action {
