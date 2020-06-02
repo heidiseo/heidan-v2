@@ -31,9 +31,10 @@ object Application extends Controller with DefaultJsonProtocol {
       stmt.executeUpdate("INSERT INTO ticks VALUES (now())")
 
       val rs = stmt.executeQuery("SELECT tick FROM ticks")
+      val activities = stmt.executeQuery("SELECT name FROM activities")
 
-      while (rs.next) {
-        out += "Read from DB: " + rs.getTimestamp("tick") + "\n"
+      while (activities.next) {
+        out += "Activity: " + activities.getString("name") + "\n"
       }
     } finally {
       conn.close()
