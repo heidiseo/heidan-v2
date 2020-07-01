@@ -22,23 +22,37 @@ object Application extends Controller with DefaultJsonProtocol {
   }
 
   def db = Action {
-    var out = ""
+    var id: Int = 1
+    var name: String = ""
+    var location: String = ""
+    var cost: Option[Double] = Option(1.00)
+    var description: String = ""
+    var complete: Boolean = true
+    var activity: Activity = Activity(id, name, location, cost, description, complete)
     val conn = DB.getConnection()
     try {
       val stmt = conn.createStatement
 
-      stmt.executeUpdate("CREATE TABLE IF NOT EXISTS ticks (tick timestamp)")
-      stmt.executeUpdate("INSERT INTO ticks VALUES (now())")
-
-      val rs = stmt.executeQuery("SELECT tick FROM ticks")
-      val activities = stmt.executeQuery("SELECT name FROM activities")
+//      val idA = stmt.executeQuery("SELECT id FROM activities")
+//      val nameA = stmt.executeQuery("SELECT name FROM activities")
+//      val locationA = stmt.executeQuery("SELECT location FROM activities")
+//      val costA = stmt.executeQuery("SELECT cost FROM activities")
+//      val descriptionA = stmt.executeQuery("SELECT description FROM activities")
+//      val activities = stmt.executeQuery("SELECT complete FROM activities")
+      val activities = stmt.executeQuery("SELECT * FROM activities")
 
       while (activities.next) {
-        out += "Activity: " + activities.getString("name") + "\n"
+        id = activities.getInt("id")
+        name = activities.getString("name")
+        location = activities.getString("location")
+        cost = Option(activities.getFloat("cost").toDouble)
+        description = activities.getString("description")
+        complete = activities.getBoolean("complete")
+        activity = Activity(id, name, location, cost, description, complete)
       }
     } finally {
       conn.close()
     }
-    Ok(out)
+    Ok(Json.toJson(activity))
   }
 }
