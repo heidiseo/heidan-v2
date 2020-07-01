@@ -1,6 +1,8 @@
 package controllers
 
 import model.Activity
+
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 //import play.api._
 //import play.api.mvc._
 //import play.api.cache.Cache
@@ -28,7 +30,7 @@ object Application extends Controller with DefaultJsonProtocol {
     var cost: Option[Double] = Option(1.00)
     var description: String = ""
     var complete: Boolean = true
-    var activity: Activity = Activity(id, name, location, cost, description, complete)
+    var activity: ListBuffer[Activity] = ListBuffer()
     val conn = DB.getConnection()
     try {
       val stmt = conn.createStatement
@@ -48,7 +50,7 @@ object Application extends Controller with DefaultJsonProtocol {
         cost = Option(activities.getFloat("cost").toDouble)
         description = activities.getString("description")
         complete = activities.getBoolean("complete")
-        activity = Activity(id, name, location, cost, description, complete)
+        activity += Activity(id, name, location, cost, description, complete)
       }
     } finally {
       conn.close()
