@@ -1,7 +1,6 @@
 package controllers
 
 import model.Activity
-
 import scala.collection.mutable.ListBuffer
 import play.api.Play.current
 import play.api.db._
