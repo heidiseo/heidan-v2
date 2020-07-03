@@ -1,6 +1,10 @@
 package controllers
 
+
+import java.sql.SQLException
+
 import model.Activity
+
 import scala.collection.mutable.ListBuffer
 import play.api.Play.current
 import play.api.db._
@@ -68,6 +72,8 @@ object Application extends Controller with DefaultJsonProtocol {
         activity = Activity(inputId, name, location, cost, description, complete)
       }
 
+    } catch {
+      case ex: SQLException => println(s"exception occurred $ex")
     } finally {
       conn.close()
     }
