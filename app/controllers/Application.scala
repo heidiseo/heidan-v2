@@ -63,20 +63,21 @@ object Application extends Controller with DefaultJsonProtocol {
 
       val activitiesFromDB = stmt.executeQuery(s"SELECT * FROM activities WHERE id=$inputId")
 
-      while (activitiesFromDB.next) {
-        name = activitiesFromDB.getString("name")
-        location = activitiesFromDB.getString("location")
-        cost = Option(activitiesFromDB.getFloat("cost").toDouble)
-        description = activitiesFromDB.getString("description")
-        complete = activitiesFromDB.getBoolean("complete")
-        activity = Activity(inputId, name, location, cost, description, complete)
+      if (activitiesFromDB.next) {
+        while (activitiesFromDB.next) {
+          name = activitiesFromDB.getString("name")
+          location = activitiesFromDB.getString("location")
+          cost = Option(activitiesFromDB.getFloat("cost").toDouble)
+          description = activitiesFromDB.getString("description")
+          complete = activitiesFromDB.getBoolean("complete")
+          activity = Activity(inputId, name, location, cost, description, complete)
+        }
+        Ok(Json.toJson(activity))
+      } else {
+        NOT_FOUND
       }
-
-    } catch {
-      case ex: SQLException => println(s"exception occurred $ex")
     } finally {
       conn.close()
     }
-    Ok(Json.toJson(activity))
   }
 }
