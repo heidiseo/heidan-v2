@@ -45,4 +45,30 @@ object Application extends Controller with DefaultJsonProtocol {
         case _ => Json.toJson(activities)
       })
   }
+
+  def getById(inputId: Int) = Action {
+    var name: String = ""
+    var location: String = ""
+    var cost: Option[Double] = Option(1.00)
+    var description: String = ""
+    var complete: Boolean = true
+    var activity: Activity = Activity(inputId, name, location, None, description, complete)
+    val conn = DB.getConnection()
+    try {
+      val stmt = conn.createStatement
+
+      val activitiesFromDB = stmt.executeQuery(s"SELECT * FROM activities WHERE id=$inputId")
+
+      name = activitiesFromDB.getString("name")
+      location = activitiesFromDB.getString("location")
+      cost = Option(activitiesFromDB.getFloat("cost").toDouble)
+      description = activitiesFromDB.getString("description")
+      complete = activitiesFromDB.getBoolean("complete")
+      activity = Activity(inputId, name, location, cost, description, complete)
+
+    } finally {
+      conn.close()
+    }
+    Ok(Json.toJson(activity))
+  }
 }
