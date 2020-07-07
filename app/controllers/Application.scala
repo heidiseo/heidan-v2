@@ -78,20 +78,34 @@ object Application extends Controller with DefaultJsonProtocol {
   }
 
   def create(): Action[Activity] = Action(parse.json[Activity]) { request: Request[Activity] =>
-    val activity: Activity = request.body
+    val requestActivity: Activity = request.body
     val conn = DB.getConnection()
-    var autoId = 0
+    var name: String = ""
+    var location: String = ""
+    var cost: Option[Double] = Option(1.00)
+    var description: String = ""
+    var complete: Boolean = true
+    var activity: Activity = Activity(None, name, location, None, description, complete)
     try {
       val stmt = conn.createStatement
 
       stmt.executeUpdate(s"INSERT INTO activities (name, location, cost, description, complete)" +
-        s" VALUES (${activity.name}, ${activity.location}, ${activity.cost}, ${activity.description}, ${activity.complete})")
-      autoId = stmt.getGeneratedKeys.getInt(1)
+        s" VALUES (${requestActivity.name}, ${requestActivity.location}, ${requestActivity.cost}, ${requestActivity.description}, ${requestActivity.complete})")
+      val autoId = stmt.getGeneratedKeys.getInt(1)
+      val fetchFromDB = stmt.executeQuery(s"SELECT * FROM activities WHERE id=$autoId")
+      while (fetchFromDB.next) {
+        name = fetchFromDB.getString("name")
+        location = fetchFromDB.getString("location")
+        cost = Option(fetchFromDB.getFloat("cost").toDouble)
+        description = fetchFromDB.getString("description")
+        complete = fetchFromDB.getBoolean("complete")
+        activity = Activity(Option(autoId), name, location, cost, description, complete)
+      }
 
     } finally {
       conn.close()
     }
-    Ok(getById(autoId))
+    Ok(Json.toJson(activity))
   }
 
 
