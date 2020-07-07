@@ -107,6 +107,4 @@ object Application extends Controller with DefaultJsonProtocol {
     }
     Ok(Json.toJson(activity))
   }
-
-
 }
