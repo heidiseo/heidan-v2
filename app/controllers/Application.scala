@@ -37,7 +37,7 @@ object Application extends Controller with DefaultJsonProtocol {
         cost = Option(activitiesFromDB.getFloat("cost").toDouble)
         description = activitiesFromDB.getString("description")
         complete = activitiesFromDB.getBoolean("complete")
-        activities += Activity(id, name, location, cost, description, complete)
+        activities += Activity(Option(id), name, location, cost, description, complete)
       }
     } finally {
       conn.close()
@@ -50,34 +50,49 @@ object Application extends Controller with DefaultJsonProtocol {
       })
   }
 
-  def getById(inputId: Int) = Action {
+  def getById(inputId: Int): Action[AnyContent] = Action {
     var name: String = ""
     var location: String = ""
     var cost: Option[Double] = Option(1.00)
     var description: String = ""
     var complete: Boolean = true
-    var activity: Activity = Activity(inputId, name, location, None, description, complete)
+    var activity: Activity = Activity(Option(inputId), name, location, None, description, complete)
     val conn = DB.getConnection()
     try {
       val stmt = conn.createStatement
 
       val activitiesFromDB = stmt.executeQuery(s"SELECT * FROM activities WHERE id=$inputId")
 
-      if (activitiesFromDB.next) {
-        while (activitiesFromDB.next) {
-          name = activitiesFromDB.getString("name")
-          location = activitiesFromDB.getString("location")
-          cost = Option(activitiesFromDB.getFloat("cost").toDouble)
-          description = activitiesFromDB.getString("description")
-          complete = activitiesFromDB.getBoolean("complete")
-          activity = Activity(inputId, name, location, cost, description, complete)
-        }
-        Ok(Json.toJson(activity))
-      } else {
-        NOT_FOUND
+      while (activitiesFromDB.next) {
+        name = activitiesFromDB.getString("name")
+        location = activitiesFromDB.getString("location")
+        cost = Option(activitiesFromDB.getFloat("cost").toDouble)
+        description = activitiesFromDB.getString("description")
+        complete = activitiesFromDB.getBoolean("complete")
+        activity = Activity(Option(inputId), name, location, cost, description, complete)
       }
     } finally {
       conn.close()
     }
+    Ok(Json.toJson(activity))
   }
+
+  def create(): Action[Activity] = Action(parse.json[Activity]) { request: Request[Activity] =>
+    val activity: Activity = request.body
+    val conn = DB.getConnection()
+    var autoId = 0
+    try {
+      val stmt = conn.createStatement
+
+      stmt.executeUpdate(s"INSERT INTO activities (name, location, cost, description, complete)" +
+        s" VALUES (${activity.name}, ${activity.location}, ${activity.cost}, ${activity.description}, ${activity.complete})")
+      autoId = stmt.getGeneratedKeys.getInt(1)
+
+    } finally {
+      conn.close()
+    }
+    Ok(getById(autoId))
+  }
+
+
 }

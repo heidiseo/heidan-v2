@@ -10,7 +10,7 @@ package model
 //
 //import scala.concurrent.Future
 //
-case class Activity(id: Long, name: String, location: String, cost: Option[Double], description: String, complete: Boolean = false)
+case class Activity(id: Option[Long], name: String, location: String, cost: Option[Double], description: String, complete: Boolean = false)
 //
 //class Activities(tag: Tag) extends Table[Activity](tag, "activities") {
 //  def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
